@@ -13,17 +13,30 @@ export async function getCabins(){
   return data
 }
 
-export async function createCabin(newCabin){
+export async function createEditCabin( newCabin, id ){
+  const hasImagePath = newCabin.image?.startsWith?.("https://"); //Optional chaining cause image might not be a string
+  
   const imageName = `${Math.random()}-${newCabin.image.name}`
   .replaceAll('/', '')
-  // reference path https://sxmohtbvjcpwxrvfcgfu.supabase.co/storage/v1/object/public/cabin-images/cabin-001.jpg
-  const imagePath = `${supabaseUrl}/storage/v1/object/public/cabin-images/${imageName}`
 
-  // 1. Create cabin
-  const { data, error } = await supabase
-  .from('cabins')
-  .insert({...newCabin, image: imagePath})
+  // reference path https://sxmohtbvjcpwxrvfcgfu.supabase.co/storage/v1/object/public/cabin-images/cabin-001.jpg
+  const imagePath = hasImagePath ? newCabin.image 
+    :`${supabaseUrl}/storage/v1/object/public/cabin-images/${imageName}`
+
+  // 1. Create/Edit cabin
+  let query = supabase.from('cabins') 
   
+  // A) CREATE
+  if(!id)
+    query = query.insert([{...newCabin, image: imagePath}]) //placed in an array
+
+  // B) EDIT
+  if(id) 
+    query = query.update({...newCabin, image: imagePath}) //placed without an array
+    .eq('id', id)
+  
+  const { data, error } = await query.select().single()  
+
   if(error){
     console.error('error')
     throw new Error('Cabin cannot be created')
