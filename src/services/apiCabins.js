@@ -16,10 +16,10 @@ export async function getCabins(){
 export async function createEditCabin( newCabin, id ){
   const hasImagePath = newCabin.image?.startsWith?.("https://"); //Optional chaining cause image might not be a string
   
+  // reference path https://sxmohtbvjcpwxrvfcgfu.supabase.co/storage/v1/object/public/cabin-images/cabin-001.jpg
   const imageName = `${Math.random()}-${newCabin.image.name}`
   .replaceAll('/', '')
 
-  // reference path https://sxmohtbvjcpwxrvfcgfu.supabase.co/storage/v1/object/public/cabin-images/cabin-001.jpg
   const imagePath = hasImagePath ? newCabin.image 
     :`${supabaseUrl}/storage/v1/object/public/cabin-images/${imageName}`
 

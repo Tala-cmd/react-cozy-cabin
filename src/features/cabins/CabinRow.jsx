@@ -1,10 +1,9 @@
 import styled from "styled-components";
 import { formatCurrency } from '../../utils/helpers'
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { deleteCabin } from "../../services/apiCabins";
-import toast from "react-hot-toast";
 import { useState } from "react";
 import CreateCabinForm from "./CreateCabinForm";
+import { useDeleteCabin } from "./useDeleteCabin";
+import Spinner from '../../ui/Spinner'
 
 const TableRow = styled.div`
   display: grid;
@@ -47,32 +46,16 @@ const Discount = styled.div`
 
 function CabinRow({ cabin }) {
   const [showForm, setShowForm] = useState(false)
-
+  const {isDeleting, deleteCabin} = useDeleteCabin()
+  
+  if(isDeleting) return <Spinner />
   const {id: cabinId, name, maxCapacity, regularPrice, discount, image} = cabin
-
-  const queryClient = useQueryClient()
-
-  const [isDeleting, setIsDeleting] = useState(false)
-
-  const { mutate } = useMutation({
-    mutationFn: deleteCabin, // same as (id)=> deleteCabin(id)
-    onSuccess: () => {
-      toast.success('Cabin successfully deleted')
-      
-      queryClient.invalidateQueries({
-        queryKey: ['cabins']
-      }) 
-    },
-    onError: (err) => toast.error(err.message)
-  })
 
   const handleDelete = async () => {
     const confirmed = window.confirm(`Are you sure you want to delete cabin ${name}?`);
     if (confirmed) {
-      setIsDeleting(true); // Show loading state while deleting
-      mutate(cabinId); // Call the mutation to delete
-      setIsDeleting(false);
-    }
+      deleteCabin(cabinId); // Call the mutation to delete
+    } 
   };
 
   return (
@@ -82,7 +65,12 @@ function CabinRow({ cabin }) {
         <Cabin>{name}</Cabin>
         <div>Fits up to {maxCapacity} guests</div>
         <Price>{formatCurrency(regularPrice)}</Price>
-        <Discount>{formatCurrency(discount)}</Discount>
+        {discount ? (
+          <Discount>{formatCurrency(discount)}</Discount>
+        ) : (
+          <span>&mdash;</span>
+        )}
+        
         <div>
           <button onClick={()=> setShowForm((show)=> !show)}>
             Edit
