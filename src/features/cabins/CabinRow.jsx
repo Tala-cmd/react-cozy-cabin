@@ -4,6 +4,8 @@ import { useState } from "react";
 import CreateCabinForm from "./CreateCabinForm";
 import { useDeleteCabin } from "./useDeleteCabin";
 import Spinner from '../../ui/Spinner'
+import { useCreateCabin } from "./useCreateCabin";
+import { HiPencil, HiSquare2Stack, HiTrash } from "react-icons/hi2";
 
 const TableRow = styled.div`
   display: grid;
@@ -47,9 +49,29 @@ const Discount = styled.div`
 function CabinRow({ cabin }) {
   const [showForm, setShowForm] = useState(false)
   const {isDeleting, deleteCabin} = useDeleteCabin()
+  const {isCreating, createCabin} = useCreateCabin()
   
   if(isDeleting) return <Spinner />
-  const {id: cabinId, name, maxCapacity, regularPrice, discount, image} = cabin
+  const {
+    id: cabinId, 
+    name, 
+    maxCapacity, 
+    regularPrice, 
+    discount, 
+    image, 
+    description
+  } = cabin
+
+  function handleDuplicate(){
+    createCabin({
+      name: `Copy of ${name}`,
+      maxCapacity,
+      regularPrice,
+      discount,
+      image,
+      description
+    })
+  }
 
   const handleDelete = async () => {
     const confirmed = window.confirm(`Are you sure you want to delete cabin ${name}?`);
@@ -72,11 +94,14 @@ function CabinRow({ cabin }) {
         )}
         
         <div>
+          <button onClick={handleDuplicate} disabled={isCreating}>
+            <HiSquare2Stack />
+          </button>
           <button onClick={()=> setShowForm((show)=> !show)}>
-            Edit
+            <HiPencil />
           </button>
           <button disabled={isDeleting} onClick={handleDelete}>
-            {isDeleting ? 'Deleting...' : 'Delete'}
+            {isDeleting ? 'Deleting...' : <HiTrash />}
           </button>
         </div>
       </TableRow>
